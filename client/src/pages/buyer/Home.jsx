@@ -2,25 +2,26 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
 
-const categoryBg = {
-  food: "linear-gradient(135deg, #3d2e1a 0%, #7a4e2d 60%, #c97a2d 100%)",
-  bakery: "linear-gradient(135deg, #3d2a1a 0%, #8a5a3d 60%, #e0956b 100%)",
-  craft: "linear-gradient(135deg, #1a2e3d 0%, #2d5a7a 60%, #3d9bc9 100%)",
-  beauty: "linear-gradient(135deg, #2e1a2e 0%, #7a2d5a 60%, #c93d7a 100%)",
-  fashion: "linear-gradient(135deg, #1a2e1a 0%, #2d7a4e 60%, #3dc97a 100%)",
-  other: "linear-gradient(135deg, var(--plum), var(--plum-mid), var(--rose))"
+const categoryConfig = {
+  food:    { img: "https://images.unsplash.com/photo-1567364000001-f5f9ab6e7f49?w=600&q=80", label: "Food & Tiffin",      desc: "Home-cooked meals, tiffin services & cloud kitchens" },
+  bakery:  { img: "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=600&q=80", label: "Bakery & Sweets",    desc: "Cakes, mithai, cookies & artisan breads" },
+  craft:   { img: "https://images.unsplash.com/photo-1606722590583-6951b5ea92ad?w=600&q=80", label: "Craft & Art",        desc: "Handmade crafts, embroidery & home decor" },
+  beauty:  { img: "https://images.unsplash.com/photo-1596704017254-9b5e2a025acf?w=600&q=80", label: "Beauty & Wellness",  desc: "Skincare, natural products & beauty services" },
+  fashion: { img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80", label: "Fashion & Clothing",   desc: "Handloom, stitching & ethnic wear" },
+  other:   { img: "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=600&q=80", label: "Other",              desc: "Everything else from local women entrepreneurs" },
 };
 
-const cats = ["all","food","bakery","craft","beauty","fashion"];
+const cats = ["all", "food", "bakery", "craft", "beauty", "fashion"];
+const catLabel = { all: "All", food: "Food", bakery: "Bakery", craft: "Craft", beauty: "Beauty", fashion: "Fashion" };
 
 export default function Home() {
-  const [sellers, setSellers] = useState([]);
-  const [cities, setCities] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("all");
-  const [city, setCity] = useState("all");
-  const [sort, setSort] = useState("rating");
+  const [sellers, setSellers]       = useState([]);
+  const [cities, setCities]         = useState([]);
+  const [loading, setLoading]       = useState(true);
+  const [search, setSearch]         = useState("");
+  const [category, setCategory]     = useState("all");
+  const [city, setCity]             = useState("all");
+  const [sort, setSort]             = useState("rating");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const navigate = useNavigate();
 
@@ -48,51 +49,104 @@ export default function Home() {
     fetchSellers(params);
   };
 
+  const handleCatClick = (c) => {
+    setCategory(c);
+    const params = {};
+    if (search) params.q = search;
+    if (c !== "all") params.category = c;
+    if (city !== "all") params.city = city;
+    if (verifiedOnly) params.verified = "true";
+    fetchSellers(params);
+  };
+
   const sorted = [...sellers].sort((a, b) => {
-    if (sort === "rating") return b.rating - a.rating;
+    if (sort === "rating")  return b.rating - a.rating;
     if (sort === "reviews") return b.reviewCount - a.reviewCount;
-    if (sort === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
+    if (sort === "newest")  return new Date(b.createdAt) - new Date(a.createdAt);
     return 0;
   });
 
   const initials = (name) => name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+  const cfg = (cat) => categoryConfig[cat] || categoryConfig.other;
 
   return (
     <div>
+      {/* HERO */}
       <div style={styles.hero}>
-        <h1 style={styles.heroTitle}>
-          Shop from <span style={{ color: "var(--rose-light)" }}>Women Who Create</span>
-        </h1>
-        <p style={styles.heroSub}>
-          Discover home kitchens, craft studios and beauty makers in your city.
-        </p>
+        <div style={styles.heroContent}>
+          <p style={styles.heroBadge}>Women's Marketplace</p>
+          <h1 style={styles.heroTitle}>
+            From Local Hands<br />
+            <span style={styles.heroAccent}>To Wider Markets.</span>
+          </h1>
+          <p style={styles.heroSub}>
+            Discover home kitchens, craft studios and beauty makers in your city.
+            Support women entrepreneurs across India.
+          </p>
 
-        <div style={styles.searchBar}>
-          <input
-            style={styles.searchInput}
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleSearch()}
-            placeholder="Search by name, product or locality..."
-          />
-          <button className="btn btn-primary" onClick={handleSearch} style={{ borderRadius: "0 3px 3px 0", padding: "14px 24px" }}>
-            Search
-          </button>
-        </div>
-
-        <div style={styles.catStrip}>
-          {cats.map(c => (
-            <span
-              key={c}
-              onClick={() => { setCategory(c); handleSearch(); }}
-              style={{ ...styles.pill, ...(category === c ? styles.pillActive : {}) }}
+          <div style={styles.searchBar}>
+            <input
+              style={styles.searchInput}
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSearch()}
+              placeholder="Search by name, product or locality..."
+            />
+            <button
+              className="btn btn-primary"
+              onClick={handleSearch}
+              style={{ borderRadius: "0 10px 10px 0", padding: "0 24px", height: "100%", flexShrink: 0 }}
             >
-              {c === "all" ? "All" : c.charAt(0).toUpperCase() + c.slice(1)}
-            </span>
-          ))}
+              Search
+            </button>
+          </div>
+
+          <div style={styles.catStrip}>
+            {cats.map(c => (
+              <button
+                key={c}
+                onClick={() => handleCatClick(c)}
+                style={{ ...styles.pill, ...(category === c ? styles.pillActive : {}) }}
+              >
+                {catLabel[c]}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* CATEGORY SHOWCASE */}
+      {category === "all" && !search && (
+        <div style={styles.showcaseSection}>
+          <div style={styles.showcaseInner}>
+            <div style={styles.sectionHeader}>
+              <h2 style={styles.sectionTitle}>Explore Categories</h2>
+              <p style={styles.sectionSub}>Find what you are looking for</p>
+            </div>
+            <div style={styles.showcaseGrid}>
+              {Object.entries(categoryConfig).map(([key, val]) => (
+                <div
+                  key={key}
+                  style={styles.showcaseCard}
+                  onClick={() => handleCatClick(key)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => e.key === "Enter" && handleCatClick(key)}
+                >
+                  <img src={val.img} alt={val.label} style={styles.showcaseImg} loading="lazy" />
+                  <div style={styles.showcaseOverlay} />
+                  <div style={styles.showcaseText}>
+                    <div style={styles.showcaseLabel}>{val.label}</div>
+                    <div style={styles.showcaseDesc}>{val.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FILTER BAR */}
       <div style={styles.filterBar}>
         <div style={styles.filterInner}>
           <select style={styles.filterSelect} value={city} onChange={e => setCity(e.target.value)}>
@@ -105,22 +159,34 @@ export default function Home() {
             <option value="reviews">Most Reviews</option>
           </select>
           <label style={styles.checkLabel}>
-            <input type="checkbox" checked={verifiedOnly} onChange={e => setVerifiedOnly(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={verifiedOnly}
+              onChange={e => setVerifiedOnly(e.target.checked)}
+              style={{ accentColor: "var(--pink)" }}
+            />
             Verified only
           </label>
-          <button className="btn btn-ghost btn-sm" onClick={handleSearch}>Apply</button>
-          <span style={{ marginLeft: "auto", fontSize: "0.85rem", color: "var(--text-muted)" }}>
+          <button className="btn btn-primary btn-sm" onClick={handleSearch}>Apply</button>
+          <span style={{ marginLeft: "auto", fontSize: "0.84rem", color: "var(--text-muted)", fontWeight: 500 }}>
             {sorted.length} businesses found
           </span>
         </div>
       </div>
 
+      {/* SELLER GRID */}
       <div style={styles.section}>
-        <div style={styles.sectionTitle}>All Businesses</div>
-        <div style={styles.sectionSub}>Supporting women entrepreneurs across India</div>
+        <div style={styles.sectionHeader}>
+          <h2 style={styles.sectionTitle}>
+            {category === "all" ? "All Businesses" : cfg(category).label}
+          </h2>
+          <p style={styles.sectionSub}>Supporting women entrepreneurs across India</p>
+        </div>
 
         {loading ? (
-          <div style={{ textAlign: "center", padding: 60, color: "var(--text-muted)" }}>Loading...</div>
+          <div style={{ textAlign: "center", padding: "80px 20px", color: "var(--text-muted)" }}>
+            Loading...
+          </div>
         ) : sorted.length === 0 ? (
           <div className="empty-state">
             <h3>No businesses found</h3>
@@ -128,46 +194,70 @@ export default function Home() {
           </div>
         ) : (
           <div style={styles.grid}>
-            {sorted.map(seller => (
-              <div key={seller._id} className="card" style={{ cursor: "pointer" }} onClick={() => navigate(`/seller/${seller._id}`)}>
-                <div style={{ ...styles.cardBanner, background: categoryBg[seller.category] || categoryBg.other }}>
-                  {seller.verified && (
-                    <span style={styles.verifiedBadge}>Verified</span>
-                  )}
-                  <div style={styles.cardAvatar}>{initials(seller.ownerName)}</div>
-                </div>
-                <div style={styles.cardBody}>
-                  <div style={styles.cardCat}>{seller.category.toUpperCase()}</div>
-                  <div style={styles.cardName}>{seller.shopName}</div>
-                  <div style={styles.cardMeta}>
-                    <span>{seller.locality}{seller.locality.includes(seller.city) ? "" : ", " + seller.city}</span>
+            {sorted.map(seller => {
+              const c = cfg(seller.category);
+              return (
+                <div
+                  key={seller._id}
+                  className="card"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate(`/seller/${seller._id}`)}
+                >
+                  <div style={styles.cardBanner}>
+                    <img src={c.img} alt={c.label} style={styles.cardBannerImg} loading="lazy" />
+                    <div style={styles.cardBannerOverlay} />
+                    {seller.verified && (
+                      <span style={styles.verifiedBadge}>Verified</span>
+                    )}
+                    <div style={styles.cardCatBadge}>
+                      {seller.category.charAt(0).toUpperCase() + seller.category.slice(1)}
+                    </div>
                   </div>
-                  <div style={styles.productTags}>
-                    {seller.products.slice(0, 3).map(p => (
-                      <span key={p._id} style={styles.productTag}>
-                        {p.name} <span style={{ color: "var(--rose-dark)", fontWeight: 700 }}>Rs.{p.price}</span>
+
+                  <div style={styles.avatarWrap}>
+                    <div style={styles.cardAvatar}>{initials(seller.ownerName)}</div>
+                  </div>
+
+                  <div style={styles.cardBody}>
+                    <div style={styles.cardName}>{seller.shopName}</div>
+                    <div style={styles.cardMeta}>
+                      {seller.locality}{seller.locality.includes(seller.city) ? "" : ", " + seller.city}
+                    </div>
+                    <div style={styles.productTags}>
+                      {seller.products.slice(0, 3).map(p => (
+                        <span key={p._id} style={styles.productTag}>
+                          {p.name} <span style={{ color: "var(--pink-dark)", fontWeight: 700 }}>Rs.{p.price}</span>
+                        </span>
+                      ))}
+                    </div>
+                    <div style={styles.rating}>
+                      <span style={{ color: "#f0b429" }}>
+                        {"★".repeat(Math.round(seller.rating || 0))}
+                        {"☆".repeat(5 - Math.round(seller.rating || 0))}
                       </span>
-                    ))}
+                      <strong style={{ marginLeft: 5, fontSize: "0.88rem" }}>{seller.rating || "—"}</strong>
+                      <span style={{ color: "var(--text-muted)", fontSize: "0.78rem" }}>({seller.reviewCount} reviews)</span>
+                    </div>
                   </div>
-                  <div style={styles.rating}>
-                    <span style={{ color: "#f0b429" }}>{"★".repeat(Math.round(seller.rating))}</span>
-                    <strong style={{ marginLeft: 4 }}>{seller.rating || "—"}</strong>
-                    <span style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>({seller.reviewCount} reviews)</span>
+
+                  <div style={styles.cardFooter}>
+                    <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>{seller.products.length} products</span>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      onClick={e => { e.stopPropagation(); navigate(`/seller/${seller._id}`); }}
+                    >
+                      Order Now
+                    </button>
                   </div>
                 </div>
-                <div style={styles.cardFooter}>
-                  <span style={{ fontSize: "0.82rem", color: "var(--text-muted)" }}>{seller.products.length} products</span>
-                  <button
-                    className="btn btn-primary btn-sm"
-                    onClick={e => { e.stopPropagation(); navigate(`/seller/${seller._id}`); }}
-                  >
-                    Order Now
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
+      </div>
+
+      <div style={styles.footerStrip}>
+        <p>© 2026 Daksha — Empowering Women Entrepreneurs</p>
       </div>
     </div>
   );
@@ -175,39 +265,76 @@ export default function Home() {
 
 const styles = {
   hero: {
-    background: "linear-gradient(135deg, var(--plum) 0%, var(--plum-mid) 60%, var(--rose-dark) 100%)",
-    color: "var(--white)", padding: "64px 24px 56px", textAlign: "center"
+    background: "linear-gradient(135deg, #fff0f6 0%, #f8eaff 100%)",
+    padding: "72px 24px 60px", textAlign: "center",
+    borderBottom: "1px solid var(--border-light)"
   },
-  heroTitle: { fontSize: "clamp(1.8rem, 4vw, 2.8rem)", fontWeight: 800, marginBottom: 12, lineHeight: 1.2 },
-  heroSub: { fontSize: "1.05rem", color: "rgba(255,255,255,0.78)", maxWidth: 520, margin: "0 auto 32px" },
+  heroContent: { maxWidth: 680, margin: "0 auto" },
+  heroBadge: {
+    display: "inline-block", background: "white",
+    border: "1.5px solid var(--border)", borderRadius: 30,
+    padding: "5px 18px", fontSize: "0.82rem", fontWeight: 600,
+    color: "var(--purple-soft)", marginBottom: 18, boxShadow: "var(--shadow)"
+  },
+  heroTitle: {
+    fontSize: "clamp(2rem, 5vw, 3.2rem)", fontWeight: 800,
+    color: "var(--purple)", lineHeight: 1.18, marginBottom: 16
+  },
+  heroAccent: { color: "var(--pink)" },
+  heroSub: {
+    fontSize: "1.05rem", color: "var(--text-muted)",
+    maxWidth: 500, margin: "0 auto 32px", lineHeight: 1.7
+  },
   searchBar: {
-    display: "flex", maxWidth: 560, margin: "0 auto",
-    background: "var(--white)", borderRadius: 3, overflow: "hidden",
-    boxShadow: "0 4px 20px rgba(61,31,45,0.25)"
+    display: "flex", maxWidth: 580, margin: "0 auto 28px",
+    background: "white", borderRadius: 12, overflow: "hidden",
+    boxShadow: "0 6px 24px rgba(214,51,132,0.15)",
+    border: "1.5px solid var(--border)", height: 52
   },
   searchInput: {
     flex: 1, border: "none", outline: "none",
-    padding: "14px 22px", fontSize: "0.95rem", fontFamily: "inherit",
-    background: "transparent", color: "var(--text)"
+    padding: "0 18px", fontSize: "0.95rem",
+    fontFamily: "inherit", background: "transparent", color: "var(--text)"
   },
-  catStrip: {
-    maxWidth: 1200, margin: "28px auto 0", padding: "0 24px",
-    display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center"
-  },
+  catStrip: { display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" },
   pill: {
-    padding: "7px 16px", borderRadius: 4,
-    background: "rgba(255,255,255,0.12)", color: "var(--white)",
-    fontSize: "0.84rem", fontWeight: 500, cursor: "pointer",
-    border: "1px solid rgba(255,255,255,0.2)", transition: "all 0.2s"
+    padding: "8px 18px", borderRadius: 30,
+    background: "white", color: "var(--text-body)",
+    fontSize: "0.85rem", fontWeight: 500, cursor: "pointer",
+    border: "1.5px solid var(--border)", transition: "all 0.2s",
+    boxShadow: "0 2px 8px rgba(61,33,69,0.06)"
   },
-  pillActive: { background: "var(--white)", color: "var(--plum)", borderColor: "var(--white)" },
-  heroStats: {},
-  heroStat: {},
-  statNum: {},
-  statLbl: {},
+  pillActive: {
+    background: "var(--pink)", color: "white",
+    borderColor: "var(--pink)", boxShadow: "0 4px 12px rgba(214,51,132,0.3)"
+  },
+  showcaseSection: {
+    background: "white", padding: "52px 24px",
+    borderBottom: "1px solid var(--border-light)"
+  },
+  showcaseInner: { maxWidth: 1200, margin: "0 auto" },
+  showcaseGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+    gap: 18
+  },
+  showcaseCard: {
+    position: "relative", borderRadius: 16, overflow: "hidden",
+    height: 180, cursor: "pointer",
+    boxShadow: "var(--shadow-card)", transition: "transform 0.2s, box-shadow 0.2s"
+  },
+  showcaseImg: { width: "100%", height: "100%", objectFit: "cover", display: "block" },
+  showcaseOverlay: {
+    position: "absolute", inset: 0,
+    background: "linear-gradient(to top, rgba(61,33,69,0.82) 0%, rgba(61,33,69,0.2) 55%, transparent 100%)"
+  },
+  showcaseText: { position: "absolute", bottom: 0, left: 0, right: 0, padding: "14px 16px" },
+  showcaseLabel: { color: "white", fontWeight: 700, fontSize: "0.95rem" },
+  showcaseDesc: { color: "rgba(255,255,255,0.72)", fontSize: "0.72rem", marginTop: 2, lineHeight: 1.3 },
   filterBar: {
-    background: "var(--white)", borderBottom: "1px solid var(--border)",
-    padding: "14px 24px", position: "sticky", top: 64, zIndex: 90
+    background: "white", borderBottom: "1px solid var(--border-light)",
+    padding: "14px 24px", position: "sticky", top: 68, zIndex: 90,
+    boxShadow: "0 2px 10px rgba(61,33,69,0.05)"
   },
   filterInner: {
     maxWidth: 1200, margin: "0 auto",
@@ -215,41 +342,62 @@ const styles = {
   },
   filterSelect: {
     padding: "8px 14px", border: "1.5px solid var(--border)",
-    borderRadius: "var(--radius-sm)", fontSize: "0.85rem",
-    background: "var(--white)", color: "var(--text)", outline: "none", cursor: "pointer"
+    borderRadius: 8, fontSize: "0.85rem",
+    background: "white", color: "var(--text)", outline: "none",
+    cursor: "pointer", fontFamily: "inherit"
   },
-  checkLabel: { display: "flex", alignItems: "center", gap: 6, fontSize: "0.85rem", color: "var(--text-muted)", cursor: "pointer" },
-  section: { maxWidth: 1200, margin: "0 auto", padding: "36px 24px" },
-  sectionTitle: { fontSize: "1.35rem", fontWeight: 700, color: "var(--plum)", marginBottom: 6 },
-  sectionSub: { fontSize: "0.88rem", color: "var(--text-muted)", marginBottom: 24 },
+  checkLabel: {
+    display: "flex", alignItems: "center", gap: 6,
+    fontSize: "0.85rem", color: "var(--text-muted)", cursor: "pointer"
+  },
+  section: { maxWidth: 1200, margin: "0 auto", padding: "40px 24px 60px" },
+  sectionHeader: { marginBottom: 28 },
+  sectionTitle: { fontSize: "1.5rem", fontWeight: 800, color: "var(--purple)", marginBottom: 4 },
+  sectionSub: { fontSize: "0.88rem", color: "var(--text-muted)" },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 22 },
-  cardBanner: { height: 110, position: "relative" },
+  cardBanner: { height: 160, position: "relative", overflow: "hidden" },
+  cardBannerImg: { width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 0.3s ease" },
+  cardBannerOverlay: {
+    position: "absolute", inset: 0,
+    background: "linear-gradient(to top, rgba(61,33,69,0.55) 0%, transparent 60%)"
+  },
   verifiedBadge: {
     position: "absolute", top: 10, right: 10,
     background: "var(--success)", color: "white",
-    fontSize: "0.72rem", fontWeight: 700, padding: "3px 10px", borderRadius: 20
+    fontSize: "0.7rem", fontWeight: 700,
+    padding: "3px 10px", borderRadius: 20
   },
+  cardCatBadge: {
+    position: "absolute", bottom: 10, left: 12,
+    background: "rgba(255,255,255,0.92)", color: "var(--purple)",
+    fontSize: "0.72rem", fontWeight: 700,
+    padding: "3px 10px", borderRadius: 20, backdropFilter: "blur(4px)"
+  },
+  avatarWrap: { padding: "0 16px", marginTop: -22, position: "relative", zIndex: 2 },
   cardAvatar: {
-    position: "absolute", bottom: -22, left: 20,
-    width: 48, height: 48, borderRadius: "50%",
-    border: "3px solid var(--white)",
-    background: "linear-gradient(135deg, var(--rose), var(--plum-mid))",
+    width: 46, height: 46, borderRadius: "50%",
+    border: "3px solid white",
+    background: "linear-gradient(135deg, var(--pink), var(--purple-mid))",
     display: "flex", alignItems: "center", justifyContent: "center",
-    color: "var(--white)", fontWeight: 800, fontSize: "1rem",
-    boxShadow: "0 2px 8px rgba(61,31,45,0.2)"
+    color: "white", fontWeight: 800, fontSize: "1rem",
+    boxShadow: "0 3px 10px rgba(214,51,132,0.3)"
   },
-  cardBody: { padding: "32px 20px 16px" },
-  cardCat: { fontSize: "0.78rem", fontWeight: 700, color: "var(--rose-dark)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 },
-  cardName: { fontSize: "1.05rem", fontWeight: 700, color: "var(--plum)", marginBottom: 8 },
-  cardMeta: { display: "flex", gap: 14, fontSize: "0.82rem", color: "var(--text-muted)", marginBottom: 12, flexWrap: "wrap" },
-  productTags: { display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 },
+  cardBody: { padding: "10px 18px 14px" },
+  cardName: { fontSize: "1.05rem", fontWeight: 700, color: "var(--purple)", marginBottom: 4 },
+  cardMeta: { fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: 10 },
+  productTags: { display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 12 },
   productTag: {
-    background: "var(--cream-dark)", color: "var(--text)",
-    padding: "4px 10px", borderRadius: 20, fontSize: "0.78rem", fontWeight: 500
+    background: "var(--pink-pale)", color: "var(--text-body)",
+    padding: "4px 10px", borderRadius: 20, fontSize: "0.76rem",
+    fontWeight: 500, border: "1px solid var(--border-light)"
   },
-  rating: { display: "flex", alignItems: "center", gap: 4, fontSize: "0.83rem" },
+  rating: { display: "flex", alignItems: "center", gap: 4, fontSize: "0.82rem" },
   cardFooter: {
-    borderTop: "1px solid var(--border)", padding: "14px 20px",
+    borderTop: "1px solid var(--border-light)", padding: "12px 18px",
     display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10
+  },
+  footerStrip: {
+    background: "#222", color: "rgba(255,255,255,0.6)",
+    textAlign: "center", padding: "22px 24px", fontSize: "0.85rem"
   }
 };
