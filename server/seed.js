@@ -125,16 +125,25 @@ const sellers = [
   }
 ];
 
-async function seed() {
-  await mongoose.connect(process.env.MONGO_URI);
+async function seedData() {
   await Seller.deleteMany({});
   await Order.deleteMany({});
   for (const s of sellers) {
     const seller = new Seller(s);
     await seller.save();
   }
-  console.log("Seed complete");
+  console.log("Seed complete: 5 sample sellers loaded.");
+}
+
+async function seed() {
+  await mongoose.connect(process.env.MONGO_URI);
+  await seedData();
   process.exit(0);
 }
 
-seed().catch(err => { console.error(err); process.exit(1); });
+if (require.main === module) {
+  seed().catch(err => { console.error(err); process.exit(1); });
+}
+
+module.exports = { seedData, sellers };
+
