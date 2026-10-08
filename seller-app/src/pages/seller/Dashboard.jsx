@@ -7,7 +7,7 @@ export default function Dashboard() {
   const { seller, loading } = useAuth();
 
   if (loading) return <div style={{ textAlign: "center", padding: 80, color: "var(--text-muted)" }}>Loading...</div>;
-  if (!seller) return <Navigate to="/seller/login" replace />;
+  if (!seller) return <Navigate to="/login" replace />;
 
   return (
     <div style={{ display: "flex", minHeight: "calc(100vh - 64px)" }}>

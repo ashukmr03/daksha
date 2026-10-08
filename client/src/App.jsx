@@ -1,45 +1,40 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { BuyerProvider } from "./context/BuyerContext";
 import { ToastProvider } from "./components/Toast";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
 
-import Home from "./pages/buyer/Home";
+import BuyerLogin   from "./pages/buyer/Login";
+import Home         from "./pages/buyer/Home";
 import SellerDetail from "./pages/buyer/SellerDetail";
-import MyOrders from "./pages/buyer/MyOrders";
-
-import Login from "./pages/seller/Login";
-import Register from "./pages/seller/Register";
-import Dashboard from "./pages/seller/Dashboard";
-import Overview from "./pages/seller/dashboard/Overview";
-import Orders from "./pages/seller/dashboard/Orders";
-import Transactions from "./pages/seller/dashboard/Transactions";
-import Earnings from "./pages/seller/dashboard/Earnings";
-import Products from "./pages/seller/dashboard/Products";
+import MyOrders     from "./pages/buyer/MyOrders";
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BuyerProvider>
-        <ToastProvider>
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/seller/:id" element={<SellerDetail />} />
-            <Route path="/my-orders" element={<MyOrders />} />
-            <Route path="/seller/login" element={<Login />} />
-            <Route path="/seller/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />}>
-              <Route index element={<Overview />} />
-              <Route path="orders" element={<Orders />} />
-              <Route path="transactions" element={<Transactions />} />
-              <Route path="earnings" element={<Earnings />} />
-              <Route path="products" element={<Products />} />
-            </Route>
-          </Routes>
-        </ToastProvider>
-      </BuyerProvider>
-    </AuthProvider>
+    <BuyerProvider>
+      <ToastProvider>
+        <Navbar />
+        <Routes>
+          <Route path="/login" element={<BuyerLogin />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } />
+          <Route path="/seller/:id" element={
+            <ProtectedRoute>
+              <SellerDetail />
+            </ProtectedRoute>
+          } />
+          <Route path="/my-orders" element={
+            <ProtectedRoute>
+              <MyOrders />
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ToastProvider>
+    </BuyerProvider>
   );
 }

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useBuyer } from "../context/BuyerContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar() {
-  const { buyer, logoutBuyer } = useBuyer();
+  const { seller, logout } = useAuth();
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
   const navRef = useRef(null);
@@ -14,46 +14,46 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  const handleLogout = () => { logoutBuyer(); setMenu(false); navigate("/login"); };
-  const initials = (name) => name ? name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase() : "?";
+  const handleLogout = () => { logout(); setMenu(false); navigate("/login"); };
+  const initials = seller?.ownerName
+    ? seller.ownerName.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()
+    : "?";
 
   return (
     <nav style={styles.nav} ref={navRef}>
       <div style={styles.inner}>
 
-        {/* Logo */}
-        <Link to={buyer ? "/" : "/login"} style={styles.logo}>
+        <Link to="/dashboard" style={styles.logo}>
           <div style={styles.logoBox}>D</div>
           <div>
             <span style={styles.logoText}>Daksha</span>
-            <span style={styles.logoTag}>Women's Marketplace</span>
+            <span style={styles.logoTag}>Seller Dashboard</span>
           </div>
         </Link>
 
-        {/* Nav links — only when logged in */}
-        {buyer && (
+        {seller && (
           <div style={styles.links}>
-            <Link to="/" style={styles.link}>Discover</Link>
-            <Link to="/my-orders" style={styles.link}>My Orders</Link>
+            <Link to="/dashboard"          style={styles.link}>Overview</Link>
+            <Link to="/dashboard/orders"   style={styles.link}>Orders</Link>
+            <Link to="/dashboard/products" style={styles.link}>Products</Link>
           </div>
         )}
 
-        {/* Right side */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {buyer ? (
+          {seller ? (
             <div style={{ position: "relative" }}>
-              <div style={styles.avatar} onClick={() => setMenu(o => !o)} title={buyer.name}>
-                {initials(buyer.name)}
+              <div style={styles.avatar} onClick={() => setMenu(o => !o)} title={seller.ownerName}>
+                {initials}
               </div>
               {menu && (
                 <div style={styles.dropdown}>
                   <div style={styles.ddMeta}>
-                    <div style={{ fontWeight: 700, color: "var(--purple)", fontSize: "0.9rem" }}>{buyer.name}</div>
-                    <div style={{ color: "var(--text-muted)", fontSize: "0.77rem" }}>{buyer.phone}</div>
+                    <div style={{ fontWeight: 700, color: "var(--purple)", fontSize: "0.88rem" }}>{seller.shopName}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: "0.77rem" }}>{seller.ownerName}</div>
                   </div>
                   <hr style={styles.hr} />
-                  <Link to="/" style={styles.ddItem} onClick={() => setMenu(false)}>Discover</Link>
-                  <Link to="/my-orders" style={styles.ddItem} onClick={() => setMenu(false)}>My Orders</Link>
+                  <Link to="/dashboard" style={styles.ddItem} onClick={() => setMenu(false)}>Dashboard</Link>
+                  <Link to="/dashboard/products" style={styles.ddItem} onClick={() => setMenu(false)}>My Products</Link>
                   <hr style={styles.hr} />
                   <button style={{ ...styles.ddItem, color: "var(--danger)" }} onClick={handleLogout}>
                     Sign Out
@@ -62,9 +62,10 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <Link to="/login">
-              <button className="btn btn-primary btn-sm">Sign In</button>
-            </Link>
+            <div style={{ display: "flex", gap: 8 }}>
+              <Link to="/login"><button className="btn btn-outline btn-sm">Sign In</button></Link>
+              <Link to="/register"><button className="btn btn-primary btn-sm">Register</button></Link>
+            </div>
           )}
         </div>
       </div>
@@ -75,8 +76,7 @@ export default function Navbar() {
 const styles = {
   nav: {
     position: "sticky", top: 0, zIndex: 100,
-    background: "white",
-    borderBottom: "1px solid var(--border-light)",
+    background: "white", borderBottom: "1px solid var(--border-light)",
     boxShadow: "0 2px 12px rgba(61,33,69,0.07)"
   },
   inner: {
@@ -107,13 +107,14 @@ const styles = {
     position: "absolute", top: "calc(100% + 10px)", right: 0,
     background: "white", border: "1px solid var(--border-light)",
     borderRadius: 14, boxShadow: "var(--shadow-lg)",
-    minWidth: 185, padding: 6, zIndex: 200
+    minWidth: 200, padding: 6, zIndex: 200
   },
   ddMeta: { padding: "10px 14px 8px" },
   ddItem: {
     display: "block", padding: "9px 14px", borderRadius: 8,
-    fontSize: "0.87rem", color: "var(--text-body)", background: "none",
-    border: "none", cursor: "pointer", width: "100%", textAlign: "left", fontFamily: "inherit"
+    fontSize: "0.87rem", color: "var(--text-body)",
+    background: "none", border: "none", cursor: "pointer",
+    width: "100%", textAlign: "left", fontFamily: "inherit"
   },
   hr: { border: "none", borderTop: "1px solid var(--border-light)", margin: "4px 0" },
 };
